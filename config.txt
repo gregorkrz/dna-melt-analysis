@@ -1,0 +1,11 @@
+# Comma-separated list of files
+filename=data/BCL2MIDG4/BCL2melt.csv
+
+# od ----> do v stopinjah C
+temperature_range=15,90
+
+# legenda v grafih
+legend=on
+
+# toliko prvih in toliko zadnjih tock bo program vzel za baseline: (-1, ce zelimo dinamicno prilagajanje)
+baseline_number_of_points=12
