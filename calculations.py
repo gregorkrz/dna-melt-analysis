@@ -15,7 +15,6 @@ def calc_der(data_set, interpolated, Ts):
 
 def baseline_calc(baseline_number_of_points):
     baseline = []
-    ff = []
     for i in range(len(data_set)):
         k = 3
         rvalue = 1
@@ -34,21 +33,30 @@ def baseline_calc(baseline_number_of_points):
             k = baseline_number_of_points
             Kupper, Nupper, rvalue, _, stderr = linear(T[i][-k:], A[i][-k:])
             Klower, Nlower, _, rvalue, stderr = linear(T[i][:k], A[i][:k])
-        if A[i][0] >= A[i][len(A[i])-1]:
+        if T[i][0] >= T[i][len(T[i])-1]:
             tmp = [Kupper,Nupper]
             Kupper=Klower
             Nupper=Nlower
             Klower=tmp[0]
-            Klower=tmp[1]
+            Nlower=tmp[1]
 
         baseline.append([Klower, Nlower, Kupper, Nupper])
 
-        T[i] = np.array(T[i])
-        tAf = Klower*T[i]+Nlower
-        tAu = Kupper*T[i]+Nupper
-        ff.append(1-((A[i]-tAu)/(tAf-tAu)))
+    return np.array(baseline)
 
-    return np.array(baseline), np.array(ff)
+def ff_calc(baseline):
+    ff = []
+    for i in range(len(data_set)):
+        tmp=np.array(T[i])
+        Klower=baseline[i][0]
+        Nlower=baseline[i][1]
+        Kupper = baseline[i][2]
+        Nupper = baseline[i][3]
+        tAf = Klower*tmp+Nlower
+        tAu = Kupper*tmp+Nupper
+        ff.append(((A[i]-tAu)/(tAf-tAu)))
+
+    return np.array(ff)
 
 def linear_fit(x1, x2, y1, y2, val=0.5):
     # Finds such x that y = val (0.5)

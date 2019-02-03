@@ -53,7 +53,7 @@ for fname in filelist:
             if first_row:
                 first_row = False
                 for i in range(int(len(x)/2)):
-                    if len(filelist) > 1: data_set_current.append("["+fname.split(".")[0]+"] "+x[2*i].rstrip())
+                    if len(filelist) > 1: data_set_current.append("["+fname.split("/")[-1].split(".")[0]+"] "+x[2*i].rstrip())
                     else: data_set_current.append(x[2*i].rstrip())
                     if x[2*i+1].rstrip() != '': dna_conc_current.append(float(x[2*i+1].rstrip()))
                     else : dna_conc_current.append(2)
@@ -83,23 +83,22 @@ for i in range(len(data_set)):
 
 odvodi = calc_der(data_set, interpolated, Ts)
 
-baseline, ff = baseline_calc(baseline_number_of_points)
+baseline = baseline_calc(baseline_number_of_points)
+ff = ff_calc(baseline)
 
-TMs = []
-TMIs = []
+def calculate_TMs():
+    TMs = []
 
+    for i in range(len(ff)):
+        for j in range(1,len(ff[i])):
+            if (ff[i][j-1] > 0.5 and ff[i][j] <= 0.5) or (ff[i][j] > 0.5 and ff[i][j-1] <= 0.5):
+                TMs.append(linear_fit(
+                    T[i][j], T[i][j-1], ff[i][j], ff[i][j-1]
+                ))
+                break
+    return TMs
 
-
-for i in range(len(ff)):
-    for j in range(1,len(ff[i])):
-        if (ff[i][j-1] > 0.5 and ff[i][j] <= 0.5) or (ff[i][j] > 0.5 and ff[i][j-1] <= 0.5):
-            TMs.append(linear_fit(
-                T[i][j], T[i][j-1], ff[i][j], ff[i][j-1]
-            ))
-            TMIs.append([i, j])
-            break
-
-
+TMs = calculate_TMs()
 Ka = (1-ff)*(1-ff)/ff
 
 for i in range(len(Ka)):
@@ -153,7 +152,7 @@ for i in range(len(data_set)):
     if export_images: drawAbs(1, [i], True, data_set[i])
 
 while True:
-    print("0: Absorbance vs Temperature\n\t\t + baselines (1)\n\t\t + interpolated (2)\n((3: Derivative of absorbance vs Temperature))\n4: Fraction folded vs Temperature\n((5: lnKa(1/T)))\n((6: theor. graph))\nq: quit")
+    print("0: Absorbance vs Temperature\n\t\t + baselines (1)\n\t\t + interpolated (2)\n((3: Derivative of absorbance vs Temperature))\n4: Fraction folded vs Temperature\n((5: lnKa(1/T)))\n((6: theor. graph))\n7: manual baseline determination\nq: quit")
     ans = (input())
     if(ans == 'q'): break
     ans = int(ans)
@@ -200,7 +199,6 @@ while True:
         plt.show()
 
     elif ans == 4:
-
         plt.figure()
         plt.xlabel("T [°C]")
         plt.ylabel("Ф")
@@ -211,7 +209,7 @@ while True:
             plt.plot(T[i], ff[i], ".", label=data_set[i])
             Tm_table[0].append(data_set[i])
             Tm_table[1].append((round(TMs[i], 2)))
-            w.writeTable([T[i].tolist(), ff[i].tolist()], [data_set[i], ''])
+            w.writeTable([T[i], ff[i].tolist()], [data_set[i], ''])
             print("Tm (", data_set[i], ") = ", str(round(TMs[i], 2)))
         w.writeTable(Tm_table, ['sample', 'Tm'])
         w.close()
@@ -249,6 +247,25 @@ while True:
         plt.show()
     elif ans == 7:
         # manual baseline determination
-        break
-
+        for i in lst:
+            print(ff[i])
+            lBas = input(data_set[i] + " from-to °C (lower baseline): ").split("-")
+            uBas = input(data_set[i] + " from-to °C (upper baseline): ").split("-")
+            lBas = list(map(float, lBas))
+            uBas = list(map(float, uBas))
+            temp_lower_baseline = [[],[]]
+            temp_upper_baseline = [[],[]]
+            for x in range(len(T[i])):
+                if lBas[0] <= T[i][x] <= lBas[1]:
+                    temp_lower_baseline[0].append(T[i][x])
+                    temp_lower_baseline[1].append(A[i][x])
+                if uBas[0] <= T[i][x] <= uBas[1]:
+                    temp_upper_baseline[0].append(T[i][x])
+                    temp_upper_baseline[1].append(A[i][x])
+            Klower, Nlower, _, _, _ = linear(temp_lower_baseline[0], temp_lower_baseline[1])
+            Kupper, Nupper, _, _, _ = linear(temp_upper_baseline[0], temp_upper_baseline[1])
+            baseline[i] = [Klower, Nlower, Kupper, Nupper]
+            #print(baseline)
+            #print(baseline[i])
+            ff=ff_calc(baseline)
 

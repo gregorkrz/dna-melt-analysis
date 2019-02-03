@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import linregress as linear
 from scipy import interpolate
 #fname = input("Filename: ")
-fname = "arhiv/cd6.csv"
+fname = "data/arhiv/cd5.csv"
 content = open(fname).readlines()
 print(len(content))
 wavelen = []
@@ -49,6 +49,7 @@ for z in content:
         break
     elif(c==3):
         t = i.split(",")
+        print(t)
         wavelen.append(int(t[0]))
         cd.append([])
         k = len(cd)-1
@@ -87,7 +88,7 @@ def cdgraph():
         a=grouped(cd[i],wavelen)
         b=interp(a[0],a[1])
         c=np.linspace(np.amin(wavelen),np.amax(wavelen),num=500)
-        plt.plot(c,b(c)/0.03,"-",label=str(temp[i]),color        =(color_profile[0], color_profile[1], color_profile[2], alpha))
+        plt.plot(c,b(c),"-",label=str(temp[i]),color        =(color_profile[0], color_profile[1], color_profile[2], alpha))
 
         #export([[c, b(c)]])
        # plt.plot(c,b(c),"-",label=str(temp[i]))

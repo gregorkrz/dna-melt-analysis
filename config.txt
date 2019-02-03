@@ -1,6 +1,8 @@
 # Comma-separated list of files
-filename=data/BCL2MIDG4/BCL2melt.csv
-
+#filename=data/BCL2MIDG4/BCL2melt.csv
+filename=data/BCL2MID/bcl2mid-110mMK.csv,data/BCL2MIDG4/BCL2melt.csv
+#filename=data/BCL2MIDG4/BCL2melt_H2O.csv
+#filename=data/arhiv/NaCl_data/data.csv
 # od ----> do v stopinjah C
 temperature_range=15,90
 
@@ -9,3 +11,5 @@ legend=on
 
 # toliko prvih in toliko zadnjih tock bo program vzel za baseline: (-1, ce zelimo dinamicno prilagajanje)
 baseline_number_of_points=12
+
+#fontsize=14
