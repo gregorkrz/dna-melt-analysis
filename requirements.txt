@@ -2,3 +2,4 @@ matplotlib
 xlsxwriter
 numpy
 scipy
+pickle-warehouse

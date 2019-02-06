@@ -6,7 +6,8 @@ from scipy import interpolate
 import globals
 from excel_export import * 
 from calculations import * 
-
+from pickle_warehouse import Warehouse
+warehouse = Warehouse('saved-bl')
 minBound = 0.2
 maxBound = 0.8
 
@@ -83,7 +84,12 @@ for i in range(len(data_set)):
 
 odvodi = calc_der(data_set, interpolated, Ts)
 
-baseline = baseline_calc(baseline_number_of_points)
+try:
+    baseline = warehouse['default']
+    print('Loaded default baseline configuration')
+except:
+    baseline = baseline_calc(baseline_number_of_points)
+
 ff = ff_calc(baseline)
 
 def calculate_TMs():
@@ -152,9 +158,38 @@ for i in range(len(data_set)):
     if export_images: drawAbs(1, [i], True, data_set[i])
 
 while True:
-    print("0: Absorbance vs Temperature\n\t\t + baselines (1)\n\t\t + interpolated (2)\n((3: Derivative of absorbance vs Temperature))\n4: Fraction folded vs Temperature\n((5: lnKa(1/T)))\n((6: theor. graph))\n7: manual baseline determination\nq: quit")
+    print("0: Absorbance vs Temperature"
+          "\n\t\t + baselines (1)"
+          "\n\t\t + interpolated (2)"
+          "\n((3: Derivative of absorbance vs Temperature))"
+          "\n4: Fraction folded vs Temperature"
+          "\n((5: lnKa(1/T)))"
+          "\n((6: theor. graph))"
+          "\n\n** custom baseline operations **"
+          "\n7: manual baseline determination"
+          "\nS: save current baseline configuration to disk"
+          "\nL: load baseline configuration"
+          "\nD: delete baseline configuration from disk"
+          )
     ans = (input())
-    if(ans == 'q'): break
+    if(ans.upper() == 'Q'): break
+    elif ans.upper() == 'S':
+        save_to = input('Save to: ("default" will be loaded automatically)   ')
+        warehouse[save_to] = baseline
+        print('Baselines Saved')
+        continue
+    elif ans.upper() == 'L':
+        load_from = input('Load from: ')
+        baseline = warehouse[load_from]
+        ff = ff_calc(baseline)
+        print('Baselines Loaded')
+        continue
+    elif ans.upper() == 'D':
+        delete_save = input('Delete this: ')
+        del(warehouse[delete_save])
+        print(delete_save, " was deleted")
+        continue
+
     ans = int(ans)
     print("--------")
     for i in range(len(data_set)):
@@ -164,9 +199,9 @@ while True:
     
     if len(inp.split("="))==2 and inp.split("=")[0]=='f':
         # include all oligos that include the text after "f="
-        t = inp.split("=")[1].split(",")
+        t = inp.upper().split("=")[1].split(",")
         for i in range(len(data_set)):
-            q = data_set[i]
+            q = data_set[i].upper()
             current = True
             for j in t:
                 if j not in q:
@@ -248,7 +283,7 @@ while True:
     elif ans == 7:
         # manual baseline determination
         for i in lst:
-            print(ff[i])
+            #print(ff[i])
             lBas = input(data_set[i] + " from-to °C (lower baseline): ").split("-")
             uBas = input(data_set[i] + " from-to °C (upper baseline): ").split("-")
             lBas = list(map(float, lBas))
@@ -268,4 +303,3 @@ while True:
             #print(baseline)
             #print(baseline[i])
             ff=ff_calc(baseline)
-
