@@ -7,11 +7,13 @@ from scipy.stats import linregress as linear
 from scipy import interpolate
 from excel_export import *
 
+
 def calc_der(data_set, interpolated, Ts):
     odvodi = []
     for i in range(len(data_set)):
         odvodi.append(derivative(interpolated[i], Ts, dx=1e-4))
     return np.array(odvodi)
+
 
 def baseline_calc(baseline_number_of_points):
     baseline = []
@@ -40,7 +42,7 @@ def baseline_calc(baseline_number_of_points):
             Klower=tmp[0]
             Nlower=tmp[1]
 
-        baseline.append([Klower, Nlower, Kupper, Nupper])
+        baseline.append([Klower, Nlower, Kupper, Nupper, T[i][0], T[i][-1]])
 
     return np.array(baseline)
 
@@ -64,7 +66,7 @@ def linear_fit(x1, x2, y1, y2, val=0.5):
     return (val-n)/k
 
 def getTmCorrection(h, s, c):
-    return h/(-0.008314*(np.log(2/(c*1e-6))-s/8.314))-273.15
+    return h/(-0.008314*(np.log((c*1e-6))-s/8.314))-273.15
 
 def quad(a,b,c):
     # finds 1 solution of the quadratic equation

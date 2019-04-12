@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import linregress as linear
 from scipy import interpolate
 #fname = input("Filename: ")
-fname = "data/arhiv/cd5.csv"
+fname = "data/arhiv/cd6.csv"
 content = open(fname).readlines()
 print(len(content))
 wavelen = []
@@ -14,7 +14,8 @@ cd = [] # podarrayi so za vsako valovno dolžino
 
 color_profile = [98, 114, 196] # original
 color_profile = [255,217,102] # mutation 1
-color_profile = [91,155,213]
+color_profile = [91,155,213] #mut2 ver1
+color_profile = [255,80,80] # mut2 ver2
 
 for i in range(len(color_profile)):
     color_profile[i] = color_profile[i]/255
@@ -83,7 +84,7 @@ def interp(cd,lamb):
 
 def cdgraph():
     alpha=1
-    plt.figure(figsize=(8,7))
+    plt.figure(figsize=(9.5,7))
     for i in range(len(temp)):
         a=grouped(cd[i],wavelen)
         b=interp(a[0],a[1])
@@ -94,11 +95,11 @@ def cdgraph():
        # plt.plot(c,b(c),"-",label=str(temp[i]))
 
         alpha=alpha-1/18*alpha
-    plt.xlabel("λ [nm]",fontsize=18)
-    plt.ylabel("CD [mdeg]",fontsize=18)
-    #plt.axis([200,320,-20,30],fontsize=18)
-    plt.tick_params(axis='both', which='major', labelsize=18)
-    plt.tick_params(axis='both', which='minor', labelsize=18)
+    plt.xlabel("λ [nm]",fontsize=23)
+    plt.ylabel("CD [mdeg]",fontsize=23)
+    plt.axis([200,320,-20,30],fontsize=23)
+    plt.tick_params(axis='both', which='major', labelsize=23)
+    plt.tick_params(axis='both', which='minor', labelsize=23)
     plt.grid()
     plt.show()
 

@@ -5,12 +5,14 @@ from scipy.stats import linregress as linear
 from scipy import interpolate
 import globals
 from excel_export import * 
-from calculations import * 
+from calculations import *
+import matplotlib.markers as markers
 from pickle_warehouse import Warehouse
 warehouse = Warehouse('saved-bl')
 minBound = 0.2
 maxBound = 0.8
 
+default_dna_conc=1.5
 
 baseline_number_of_points=15
 filelist=["in.csv"]
@@ -57,7 +59,7 @@ for fname in filelist:
                     if len(filelist) > 1: data_set_current.append("["+fname.split("/")[-1].split(".")[0]+"] "+x[2*i].rstrip())
                     else: data_set_current.append(x[2*i].rstrip())
                     if x[2*i+1].rstrip() != '': dna_conc_current.append(float(x[2*i+1].rstrip()))
-                    else : dna_conc_current.append(2)
+                    else : dna_conc_current.append(default_dna_conc)
                     Tcurrent.append([])
                     Acurrent.append([])
             else:
@@ -94,53 +96,74 @@ ff = ff_calc(baseline)
 
 def calculate_TMs():
     TMs = []
-
+    print(baseline)
     for i in range(len(ff)):
         for j in range(1,len(ff[i])):
-            if (ff[i][j-1] > 0.5 and ff[i][j] <= 0.5) or (ff[i][j] > 0.5 and ff[i][j-1] <= 0.5):
+            d = True
+            if (baseline[i][4] <= T[i][j] <= baseline[i][5] or baseline[i][5] <= T[i][j] <= baseline[i][4]) and ((ff[i][j-1] > 0.5 and ff[i][j] <= 0.5) or (ff[i][j] > 0.5 and ff[i][j-1] <= 0.5)):
                 TMs.append(linear_fit(
                     T[i][j], T[i][j-1], ff[i][j], ff[i][j-1]
                 ))
+                d = False
                 break
+        if d: TMs.append(0.0)
     return TMs
 
 TMs = calculate_TMs()
-Ka = (1-ff)*(1-ff)/ff
 
-for i in range(len(Ka)):
-     Ka[i] = dna_conc[i]*Ka[i]*1e-6
-Ka = 1/Ka
-Ka2 = []
-FROM = []
-TO = []
-for i in range(len(ff)):
-    FROM.append(0)
-    TO.append(0)
-    for y in range(len(ff[i])):
-        if(ff[i][0] > 0.5):
-            if (ff[i][y] > minBound): TO[i] = y
-            if (ff[i][y] > maxBound): FROM[i] = y
-        else:
-            if (ff[i][y] < minBound): FROM[i] = y
-            if (ff[i][y] < maxBound): TO[i] = y
+def BoundCalc():
+    FROM = []
+    TO = []
+    for i in range(len(ff)):
+        FROM.append(0)
+        TO.append(0)
+        for y in range(len(ff[i])):
+            if(ff[i][0] > 0.5):
+                if (ff[i][y] > minBound): TO[i] = y
+                if (ff[i][y] > maxBound): FROM[i] = y
+            else:
+                if (ff[i][y] < minBound): FROM[i] = y
+                if (ff[i][y] < maxBound): TO[i] = y
+    return FROM, TO
+
+FROM, TO = BoundCalc()
 
 
-for i in range(len(Ka)):
-    Ka2.append(Ka[i][FROM[i]:TO[i]])
+def calcKa():
+    Ka = 1/ff + ff - 2
+    Ka2 = []
+    for i in range(len(Ka)):
+        Ka[i] = Ka[i] * dna_conc[i] * 1e-6
+        Ka2.append(Ka[i][FROM[i]:TO[i]])
+    return np.array(Ka2)  # Ka2 = Ka array in the correct range (ff = [0.2, 0.8])
 
-Ka2 = np.array(Ka2)
+Ka = calcKa()
 
-## get Tm from dH, dS and Km ##
+
+def getMarkerAndName(name):
+    color1 = (0.2, 0.4, 1)
+    color2 = (0.79, 0.4, 0.4)
+    if "BCL1 DS" in name: return (10,0,1), "BCL2MidG4", color1
+    if "BCL1 SS" in name: return (10,0,1), "BCL2MidG4 SS", color1
+    if "BCL1 CSS" in name: return (10,0,1), "BCL2MidG4 CS", color1 #TODO: lepši načrt
+    if "BCL8 DS" in name: return (4,0,1), "BCL2MidG4-C4,6,20", color2
+    if "BCL8 SS" in name: return (4,0,1), "BCL2MidG4-C4,6,20 SS", color2
+    if "BCL8 CSS" in name: return (4,0,1), "BCL2MidG4-C4,6,20 CS", color2
 
 
 def drawAbs(ans, lst, savefig=False, name=''):
     global legend, baseline
-    plt.figure()
+    plt.figure(figsize=(5,4))
     plt.xlabel("T [°C]")
     plt.ylabel("absorbance")
+    w = ExcelWriter()
+    w.addWorksheet('abs(T)')
     for i in lst:
         if (ans != 2):
-            plt.plot(T[i], A[i], ".", label=data_set[i])
+            #marker, name, color = getMarkerAndName(data_set[i])
+            #plt.plot(T[i], A[i], marker=marker, linestyle="", label=name, c=color)
+            plt.plot(T[i],A[i],label=data_set[i],marker=".")
+            w.writeTable([T[i].tolist(), A[i].tolist()], [data_set[i], ""])
         else:
             plt.plot(Ts, interpolated[i](Ts), "-", label=data_set[i])
         if (ans >= 1): plt.plot(Ts, Ts * baseline[i][0] + baseline[i][1], "--", color='gray')
@@ -151,6 +174,7 @@ def drawAbs(ans, lst, savefig=False, name=''):
     else:
         plt.savefig('OUT/'+name+'.png')
         plt.close()
+    w.close()
 
 
 
@@ -172,9 +196,9 @@ while True:
           "\nD: delete baseline configuration from disk"
           )
     ans = (input())
-    if(ans.upper() == 'Q'): break
+    if ans.upper() == 'Q': break
     elif ans.upper() == 'S':
-        save_to = input('Save to: ("default" will be loaded automatically)   ')
+        save_to = input('Save to: ')
         warehouse[save_to] = baseline
         print('Baselines Saved')
         continue
@@ -182,6 +206,9 @@ while True:
         load_from = input('Load from: ')
         baseline = warehouse[load_from]
         ff = ff_calc(baseline)
+        FROM, TO = BoundCalc()
+        Ka = calcKa()
+        TMs = calculate_TMs()
         print('Baselines Loaded')
         continue
     elif ans.upper() == 'D':
@@ -236,18 +263,26 @@ while True:
     elif ans == 4:
         plt.figure()
         plt.xlabel("T [°C]")
-        plt.ylabel("Ф")
+        plt.ylabel("fraction folded (Ф)")
         w = ExcelWriter()
         w.addWorksheet('fracFold(T)')
-        Tm_table = [[],[]]
+        Tm_table = [[], []]
+        axisXBounds = [1000, 0]
         for i in lst:
             plt.plot(T[i], ff[i], ".", label=data_set[i])
             Tm_table[0].append(data_set[i])
             Tm_table[1].append((round(TMs[i], 2)))
-            w.writeTable([T[i], ff[i].tolist()], [data_set[i], ''])
+            w.writeTable([T[i].tolist(), ff[i].tolist()], [data_set[i], ''])
+            if baseline[i][4] < baseline[i][5]:
+                if baseline[i][4] < axisXBounds[0]: axisXBounds[0] = baseline[i][4]
+                if baseline[i][5] > axisXBounds[1]: axisXBounds[1] = baseline[i][5]
+            else:
+                if baseline[i][5] < axisXBounds[0]: axisXBounds[0] = baseline[i][5]
+                if baseline[i][4] > axisXBounds[1]: axisXBounds[1] = baseline[i][4]
             print("Tm (", data_set[i], ") = ", str(round(TMs[i], 2)))
         w.writeTable(Tm_table, ['sample', 'Tm'])
         w.close()
+        plt.xlim(axisXBounds[0], axisXBounds[1])
         if legend: plt.legend()
         plt.show()
     elif ans == 5:
@@ -255,12 +290,12 @@ while True:
         plt.xlabel("1/T [1/K]")
         plt.ylabel("$lnK_a$")
         for i in lst:
-            plt.plot(1/(T[i][FROM[i]:TO[i]]+273.15),np.log(Ka2[i]),".",label=data_set[i])
-            tk, tn, _, _, _=linear(1/(T[i][FROM[i]:TO[i]]+273.15),np.log(Ka2[i]))
+            plt.plot(1/(T[i][FROM[i]:TO[i]]+273.15),np.log(Ka[i]),".",label=data_set[i])
+            tk, tn, _, _, _=linear(1/(T[i][FROM[i]:TO[i]]+273.15),np.log(Ka[i]))
             plt.plot(1/(T[i][FROM[i]:TO[i]]+273.15),tk*(1/(T[i][FROM[i]:TO[i]]+273.15))+tn,"--",color=(0.8,0.8,0.8))
             print("ΔH ("+data_set[i]+") = "+str(round(tk*-0.008314))+" kJ/mol")
             print("ΔS ("+data_set[i]+") = "+str(round(tn*8.314))+" J/(molK)")
-            print("Tm (corrected to 2uM) (" + data_set[i] + ") =", round(getTmCorrection((tk*-0.008314), (tn*8.314), dna_conc[i]), 2))
+            print("Tm (corrected to 30uM) (" + data_set[i] + ") =", round(getTmCorrection((tk*-0.008314), (tn*8.314), dna_conc[i]), 30))
         if legend: plt.legend()
         plt.show()
     elif ans == 6:
@@ -268,7 +303,7 @@ while True:
         plt.xlabel("T [°C]")
         plt.ylabel("fraction folded")
         for i in lst:
-            tk, tn, a1, a2, a3 = linear(1 / (T[i][FROM[i]:TO[i]] + 273.15), np.log(Ka2[i]))
+            tk, tn, a1, a2, a3 = linear(1 / (T[i][FROM[i]:TO[i]] + 273.15), np.log(Ka[i]))
             H = (tk * -0.008314)
             S = (tn * 0.008314)
             Ks = np.exp((H-(Ts+273.15)*S)/(-0.008314*(Ts+273.15)))
@@ -287,9 +322,9 @@ while True:
             lBas = input(data_set[i] + " from-to °C (lower baseline): ").split("-")
             uBas = input(data_set[i] + " from-to °C (upper baseline): ").split("-")
             lBas = list(map(float, lBas))
-            uBas = list(map(float, uBas))
-            temp_lower_baseline = [[],[]]
-            temp_upper_baseline = [[],[]]
+            uBas = list(map(float, uBas))  # covert answers to floats
+            temp_lower_baseline = [[], []]
+            temp_upper_baseline = [[], []]
             for x in range(len(T[i])):
                 if lBas[0] <= T[i][x] <= lBas[1]:
                     temp_lower_baseline[0].append(T[i][x])
@@ -299,7 +334,9 @@ while True:
                     temp_upper_baseline[1].append(A[i][x])
             Klower, Nlower, _, _, _ = linear(temp_lower_baseline[0], temp_lower_baseline[1])
             Kupper, Nupper, _, _, _ = linear(temp_upper_baseline[0], temp_upper_baseline[1])
-            baseline[i] = [Klower, Nlower, Kupper, Nupper]
-            #print(baseline)
-            #print(baseline[i])
-            ff=ff_calc(baseline)
+            if lBas[0] < uBas[1]: baseline[i] = [Klower, Nlower, Kupper, Nupper, lBas[0], uBas[1]]
+            else:                 baseline[i] = [Klower, Nlower, Kupper, Nupper, lBas[1], uBas[0]]
+            ff = ff_calc(baseline) #recalculate ff's (TODO: improve performance by only calculating the necessary values)
+            FROM, TO = BoundCalc()
+            Ka = calcKa()
+            TMs = calculate_TMs()

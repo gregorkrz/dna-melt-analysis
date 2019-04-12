@@ -16,7 +16,10 @@ class ExcelWriter:
       self.column += 1
   def writeTable(self, table, titles):
       for i in range(len(titles)):
+          #print(titles[i])
+          #print(table[i])
           self.writeCol([titles[i]]+table[i])
+
 
   def close(self):
       self.workbook.close()
