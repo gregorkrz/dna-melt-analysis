@@ -1,3 +1,4 @@
+#!python3.6
 import threading
 import fileinput
 import numpy as np
@@ -14,7 +15,7 @@ cd = [] # podarrayi so za vsako valovno dolžino
 
 color_profile = [98, 114, 196] # original
 color_profile = [255,217,102] # mutation 1
-color_profile = [91,155,213] #mut2 ver1
+#color_profile = [91,155,213] #mut2 ver1
 color_profile = [255,80,80] # mut2 ver2
 
 for i in range(len(color_profile)):

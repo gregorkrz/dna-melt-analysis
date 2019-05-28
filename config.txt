@@ -1,13 +1,19 @@
 # Comma-separated list of files
 
+#filename=data/BCL2MID/110mMK.csv
+#filename=data/BCLR.csv
 filename=data/BCL2MIDG4/BCL2melt.csv
 # od ----> do v stopinjah C
 temperature_range=10,90
 
 # legenda v grafih
-legend=off
+legend=on
 
 # toliko prvih in toliko zadnjih tock bo program vzel za baseline: (-1, ce zelimo dinamicno prilagajanje)
 baseline_number_of_points=12
 
 fontsize=14
+
+# Definitions of custom markers (not required):
+# customMarker=original_name,marker,name,colorR,colorG,colorB
+customMarker=BCL8 DS@260,.,name,1,0.0,0.0

@@ -18,7 +18,8 @@ baseline_number_of_points=15
 filelist=["in.csv"]
 temperatures = np.array([15.0, 90.0])
 legend = True
-export_images=False
+export_images = False
+customMarkers = {}
 with open('config.txt', encoding="utf-8-sig") as f:
     for line in f.readlines():
         if len(line.rstrip()) > 0 and line.rstrip()[0]!='#':
@@ -36,7 +37,11 @@ with open('config.txt', encoding="utf-8-sig") as f:
                 baseline_number_of_points = int(val)
             elif key == 'export_images' and val == 'on':
                 export_images=True
-
+            elif key == 'customMarker' and len(val.split(',')) == 6:
+                vals = val.split(',')
+                customMarkers[vals[0]] = [vals[1], vals[2], (float(vals[3]), float(vals[4]), float(vals[5]))]
+					
+print(customMarkers)
 
 for fname in filelist:
     content = []
@@ -94,6 +99,9 @@ except:
 
 ff = ff_calc(baseline)
 
+
+
+
 def calculate_TMs():
     TMs = []
     print(baseline)
@@ -140,30 +148,38 @@ def calcKa():
 Ka = calcKa()
 
 
-def getMarkerAndName(name):
-    color1 = (0.2, 0.4, 1)
-    color2 = (0.79, 0.4, 0.4)
-    if "BCL1 DS" in name: return (10,0,1), "BCL2MidG4", color1
-    if "BCL1 SS" in name: return (10,0,1), "BCL2MidG4 SS", color1
-    if "BCL1 CSS" in name: return (10,0,1), "BCL2MidG4 CS", color1 #TODO: lepši načrt
-    if "BCL8 DS" in name: return (4,0,1), "BCL2MidG4-C4,6,20", color2
-    if "BCL8 SS" in name: return (4,0,1), "BCL2MidG4-C4,6,20 SS", color2
-    if "BCL8 CSS" in name: return (4,0,1), "BCL2MidG4-C4,6,20 CS", color2
-
-
+    
+    
 def drawAbs(ans, lst, savefig=False, name=''):
     global legend, baseline
     plt.figure(figsize=(5,4))
     plt.xlabel("T [°C]")
-    plt.ylabel("absorbance")
+    plt.ylabel("absorbance (260 nm)")
     w = ExcelWriter()
     w.addWorksheet('abs(T)')
     for i in lst:
         if (ans != 2):
-            #marker, name, color = getMarkerAndName(data_set[i])
-            #plt.plot(T[i], A[i], marker=marker, linestyle="", label=name, c=color)
-            plt.plot(T[i],A[i],label=data_set[i],marker=".")
-            w.writeTable([T[i].tolist(), A[i].tolist()], [data_set[i], ""])
+            customMarkerExists = False
+
+            def contains(dataSetOriginal, stringToCheck):
+                t = stringToCheck.upper().split("@")
+                q = dataSetOriginal.upper()
+                ret = True
+                for j in t:
+                    if j not in q:
+                        ret = False
+                return ret
+			
+			
+            for key in customMarkers:
+                if contains(data_set[i], key):
+                    customMarkerExists = True
+                    marker, name, color = customMarkers[key][0], customMarkers[key][1], customMarkers[key][2]
+                    plt.plot(T[i], A[i], marker=marker, linestyle="", label=name, c=color)
+                    break
+            if not customMarkerExists:
+                plt.plot(T[i],A[i],label=data_set[i],marker=".")
+           #w.writeTable([T[i].tolist(), A[i].tolist()], [data_set[i], ""])
         else:
             plt.plot(Ts, interpolated[i](Ts), "-", label=data_set[i])
         if (ans >= 1): plt.plot(Ts, Ts * baseline[i][0] + baseline[i][1], "--", color='gray')
@@ -272,7 +288,7 @@ while True:
             plt.plot(T[i], ff[i], ".", label=data_set[i])
             Tm_table[0].append(data_set[i])
             Tm_table[1].append((round(TMs[i], 2)))
-            w.writeTable([T[i].tolist(), ff[i].tolist()], [data_set[i], ''])
+            #w.writeTable([T[i].tolist(), ff[i].tolist()], [data_set[i], ''])
             if baseline[i][4] < baseline[i][5]:
                 if baseline[i][4] < axisXBounds[0]: axisXBounds[0] = baseline[i][4]
                 if baseline[i][5] > axisXBounds[1]: axisXBounds[1] = baseline[i][5]
