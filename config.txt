@@ -1,7 +1,9 @@
 # Comma-separated list of files
 
-#filename=data/BCL2MID/110mMK.csv
+#filename=data/BCL2MID/110mMK.csv -------> od decembra?
 #filename=data/BCLR.csv
+#filename=data/BCL2MIDG4/BCL2melt.csv
+#filename=data/bclr.csv,data/mid1.csv,data/mid2.csv
 filename=data/BCL2MIDG4/BCL2melt.csv
 # od ----> do v stopinjah C
 temperature_range=10,90
@@ -12,8 +14,21 @@ legend=on
 # toliko prvih in toliko zadnjih tock bo program vzel za baseline: (-1, ce zelimo dinamicno prilagajanje)
 baseline_number_of_points=12
 
-fontsize=14
+fontsize=12
 
-# Definitions of custom markers (not required):
-# customMarker=original_name,marker,name,colorR,colorG,colorB
-customMarker=BCL8 DS@260,.,name,1,0.0,0.0
+# Definitions of custom colors (optional):
+# color=COLOR1,R,G,B
+# example: color=colo1,1,0,0.5
+
+color=bcl8,0.78,0.4,0.4
+color=bcl1,0.2,0.4,1
+
+# Definitions of custom markers (optional):
+# customMarker=original_name,marker,name,color_bane
+
+
+# Primer konfiguracije za BCL2MidG4
+customMarker=BCL1 DS,o,BCL2MidG4-DS,bcl1
+customMarker=BCL8 DS,^,BCL2MidG4-C4@6@20-DS,bcl8
+customMarker=BCL1 SS,.,BCL2MidG4-SS,0.2,0.4,1
+customMarker=BCL1 CSS,.,BCL2MidG4-SS,0.2,0.4,1
