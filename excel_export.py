@@ -1,11 +1,12 @@
 import random
 import string
+import time
 import xlsxwriter
 from globals import *
 
 class ExcelWriter:
   def __init__(self):
-    self.filename = randomFileName('OUT/', 'xlsx')
+    self.filename = randomFileName('out/', 'xlsx')
     self.workbook = xlsxwriter.Workbook(self.filename)
     self.column = 0
   def addWorksheet(self, ws):
@@ -16,8 +17,6 @@ class ExcelWriter:
       self.column += 1
   def writeTable(self, table, titles):
       for i in range(len(titles)):
-          #print(titles[i])
-          #print(table[i])
           self.writeCol([titles[i]]+table[i])
 
 

@@ -1,0 +1,19 @@
+# Comma-separated list of files
+filename=data/my_melt.csv
+
+temperature_range=10,90
+
+# legenda v grafih
+legend=on
+
+# toliko prvih in toliko zadnjih tock bo program vzel za baseline: (-1, ce zelimo dinamicno prilagajanje)
+baseline_number_of_points=12
+
+fontsize=12
+
+# Definitions of custom colors (optional):
+# color=COLOR1,R,G,B
+# example: color=color1,1,0,0.5
+
+# Definitions of custom markers (optional):
+# customMarker=original_name,marker,name,color_name

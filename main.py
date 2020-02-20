@@ -20,6 +20,7 @@ temperatures = np.array([15.0, 90.0])
 legend = True
 export_images = False
 customMarkers = {}
+customColors = {}
 with open('config.txt', encoding="utf-8-sig") as f:
     for line in f.readlines():
         if len(line.rstrip()) > 0 and line.rstrip()[0]!='#':
@@ -37,11 +38,13 @@ with open('config.txt', encoding="utf-8-sig") as f:
                 baseline_number_of_points = int(val)
             elif key == 'export_images' and val == 'on':
                 export_images=True
-            elif key == 'customMarker' and len(val.split(',')) == 6:
+            elif key == 'color':
+                c = val.split(',')
+                customColors[c[0]] = (float(c[1]), float(c[2]), float(c[3]))
+            elif key == 'customMarker' and len(val.split(',')) == 4:
                 vals = val.split(',')
-                customMarkers[vals[0]] = [vals[1], vals[2], (float(vals[3]), float(vals[4]), float(vals[5]))]
+                customMarkers[vals[0]] = [vals[1], vals[2], customColors[vals[3]]]
 					
-print(customMarkers)
 
 for fname in filelist:
     content = []
@@ -104,7 +107,6 @@ ff = ff_calc(baseline)
 
 def calculate_TMs():
     TMs = []
-    print(baseline)
     for i in range(len(ff)):
         for j in range(1,len(ff[i])):
             d = True
@@ -154,7 +156,7 @@ def drawAbs(ans, lst, savefig=False, name=''):
     global legend, baseline
     plt.figure(figsize=(5,4))
     plt.xlabel("T [°C]")
-    plt.ylabel("absorbance (260 nm)")
+    plt.ylabel("absorbanca")
     w = ExcelWriter()
     w.addWorksheet('abs(T)')
     for i in lst:
@@ -175,7 +177,8 @@ def drawAbs(ans, lst, savefig=False, name=''):
                 if contains(data_set[i], key):
                     customMarkerExists = True
                     marker, name, color = customMarkers[key][0], customMarkers[key][1], customMarkers[key][2]
-                    plt.plot(T[i], A[i], marker=marker, linestyle="", label=name, c=color)
+                    name = name.replace("@",",")
+                    plt.plot(T[i], A[i], marker=marker, linestyle="", label=name, color=color)
                     break
             if not customMarkerExists:
                 plt.plot(T[i],A[i],label=data_set[i],marker=".")
@@ -188,7 +191,7 @@ def drawAbs(ans, lst, savefig=False, name=''):
     if legend: plt.legend()
     if not savefig: plt.show()
     else:
-        plt.savefig('OUT/'+name+'.png')
+        plt.savefig('out/'+name+'.png')
         plt.close()
     w.close()
 
@@ -288,7 +291,7 @@ while True:
             plt.plot(T[i], ff[i], ".", label=data_set[i])
             Tm_table[0].append(data_set[i])
             Tm_table[1].append((round(TMs[i], 2)))
-            #w.writeTable([T[i].tolist(), ff[i].tolist()], [data_set[i], ''])
+            #w.writeTable([T[i], ff[i]], [data_set[i], ''])
             if baseline[i][4] < baseline[i][5]:
                 if baseline[i][4] < axisXBounds[0]: axisXBounds[0] = baseline[i][4]
                 if baseline[i][5] > axisXBounds[1]: axisXBounds[1] = baseline[i][5]

@@ -6,17 +6,17 @@ import matplotlib.pyplot as plt
 from scipy.stats import linregress as linear
 from scipy import interpolate
 #fname = input("Filename: ")
-fname = "data/arhiv/cd6.csv"
+fname = "data/arhiv/cd5.csv"
 content = open(fname).readlines()
 print(len(content))
 wavelen = []
 temp = []
 cd = [] # podarrayi so za vsako valovno dolžino
 
-color_profile = [98, 114, 196] # original
-color_profile = [255,217,102] # mutation 1
+#color_profile = [98, 114, 196] # original
+color_profile = [226,170,0] # mutation 1 v2
 #color_profile = [91,155,213] #mut2 ver1
-color_profile = [255,80,80] # mut2 ver2
+#color_profile = [255,80,80] # mut2 ver2
 
 for i in range(len(color_profile)):
     color_profile[i] = color_profile[i]/255
@@ -89,16 +89,17 @@ def cdgraph():
     for i in range(len(temp)):
         a=grouped(cd[i],wavelen)
         b=interp(a[0],a[1])
-        c=np.linspace(np.amin(wavelen),np.amax(wavelen),num=500)
-        plt.plot(c,b(c),"-",label=str(temp[i]),color        =(color_profile[0], color_profile[1], color_profile[2], alpha))
+        c=np.linspace(214, 315, num=500)
+        
+        plt.plot(c,b(c)/2,"-",label=str(temp[i]),color        =(color_profile[0], color_profile[1], color_profile[2], alpha))
 
         #export([[c, b(c)]])
-       # plt.plot(c,b(c),"-",label=str(temp[i]))
+        #plt.plot(c,b(c),"-",label=str(temp[i]))
 
         alpha=alpha-1/18*alpha
     plt.xlabel("λ [nm]",fontsize=23)
     plt.ylabel("CD [mdeg]",fontsize=23)
-    plt.axis([200,320,-20,30],fontsize=23)
+    plt.axis([200,320,-15,20],fontsize=23)
     plt.tick_params(axis='both', which='major', labelsize=23)
     plt.tick_params(axis='both', which='minor', labelsize=23)
     plt.grid()
@@ -114,7 +115,10 @@ def cwl(wl):
 
     plt.plot(temp,graph,"-")
     plt.show()
+
 cdgraph()
+
+
 
 
 

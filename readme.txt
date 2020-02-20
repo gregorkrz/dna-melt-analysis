@@ -1,3 +1,3 @@
 ﻿## DNA-curve-analysis
 
-main.py			risanje grafov v zvezi z UV melti
+main.py			UV melt graphs (configuration is in config.txt)
