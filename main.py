@@ -192,7 +192,7 @@ def drawAbs(ans, lst, savefig=False, name=''):
     for i in lst:
         if (ans != 2):
             plotCustom(T[i], A[i], i)
-           #w.writeTable([T[i].tolist(), A[i].tolist()], [data_set[i], ""])
+            w.writeTable([T[i].tolist(), A[i].tolist()], [data_set[i], ""])
         else:
             plt.plot(Ts, interpolated[i](Ts), "-", label=data_set[i])
         if (ans >= 1): plt.plot(Ts, Ts * baseline[i][0] + baseline[i][1], "--", color='gray')

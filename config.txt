@@ -2,16 +2,16 @@
 
 #filename=data/BCL2MID/110mMK.csv -------> od decembra?
 #filename=data/BCLR.csv
-#filename=data/BCL2MIDG4/BCL2melt.csv
+filename=data/BCL2MIDG4/BCL2melt.csv
 #filename=data/bclr.csv,data/mid1.csv,data/mid2.csv
-filename=example_data.csv
+#filename=example_data.csv
 
 # od ----> do v stopinjah C
 temperature_range=10,90
 
 # legenda v grafih
 legend=on
-disable_export=1
+disable_export=0
 
 # toliko prvih in toliko zadnjih tock bo program vzel za baseline: (-1, ce zelimo prilagoditev n (maks. 15) začetnih točk, ki imajo R-value manjso od 0,8)
 baseline_number_of_points=12
@@ -32,7 +32,7 @@ color=bcl1,0.2,0.4,1
 # Primer konfiguracije za BCL2MidG4.
 # Pomembno: včasih želimo, da je v prikazanem besedilu vejica (npr. "BCL2MID-C4,6,20"). V tem primeru namesto vejice vstavimo znak "@", ki bo zamenjan z vejico pri prikazu.
 
-#customMarker=BCL1 DS,o,BCL2MidG4-DS,bcl1
+customMarker=BCL1 DS,o,BCL2MidG4-DS,bcl1
 #customMarker=BCL8 DS,^,BCL2MidG4-C4@6@20-DS,bcl8
 #customMarker=BCL1 SS,o,BCL2MidG4-SS,bcl1
 #customMarker=BCL1 CSS,o,BCL2MidG4-CS,bcl1
