@@ -8,7 +8,17 @@ from excel_export import *
 from calculations import *
 import matplotlib.markers as markers
 from pickle_warehouse import Warehouse
+import os 
+
+
+if not os.path.exists("out"):
+        os.makedirs("out")
+
+if not os.path.exists("saved-bl"):
+        os.makedirs("saved-bl")
+
 warehouse = Warehouse('saved-bl')
+
 minBound = 0.2
 maxBound = 0.8
 
@@ -19,8 +29,11 @@ filelist=["in.csv"]
 temperatures = np.array([15.0, 90.0])
 legend = True
 export_images = False
+export_excel = True
+
 customMarkers = {}
 customColors = {}
+
 with open('config.txt', encoding="utf-8-sig") as f:
     for line in f.readlines():
         if len(line.rstrip()) > 0 and line.rstrip()[0]!='#':
@@ -44,6 +57,8 @@ with open('config.txt', encoding="utf-8-sig") as f:
             elif key == 'customMarker' and len(val.split(',')) == 4:
                 vals = val.split(',')
                 customMarkers[vals[0]] = [vals[1], vals[2], customColors[vals[3]]]
+            elif key == 'disable_export' and val == '1':
+                export_excel = False
 					
 
 for fname in filelist:
@@ -60,7 +75,7 @@ for fname in filelist:
     for line in content:
         x = line.rstrip().split(',')
         if all_same(x) and x[0]=='': break
-        if x[0] != 'Temperature (°C)':
+        if not x[0].startswith("Temperature"):
             if first_row:
                 first_row = False
                 for i in range(int(len(x)/2)):
@@ -94,11 +109,7 @@ for i in range(len(data_set)):
 
 odvodi = calc_der(data_set, interpolated, Ts)
 
-try:
-    baseline = warehouse['default']
-    print('Loaded default baseline configuration')
-except:
-    baseline = baseline_calc(baseline_number_of_points)
+baseline = baseline_calc(baseline_number_of_points)
 
 ff = ff_calc(baseline)
 
@@ -149,21 +160,7 @@ def calcKa():
 
 Ka = calcKa()
 
-
-    
-    
-def drawAbs(ans, lst, savefig=False, name=''):
-    global legend, baseline
-    plt.figure(figsize=(5,4))
-    plt.xlabel("T [°C]")
-    plt.ylabel("absorbanca")
-    w = ExcelWriter()
-    w.addWorksheet('abs(T)')
-    for i in lst:
-        if (ans != 2):
-            customMarkerExists = False
-
-            def contains(dataSetOriginal, stringToCheck):
+def contains(dataSetOriginal, stringToCheck):
                 t = stringToCheck.upper().split("@")
                 q = dataSetOriginal.upper()
                 ret = True
@@ -171,10 +168,11 @@ def drawAbs(ans, lst, savefig=False, name=''):
                     if j not in q:
                         ret = False
                 return ret
-			
-			
-            for key in customMarkers:
-                if contains(data_set[i], key):
+
+def plotCustom(x, y, i):
+    customMarkerExists = False
+    for key in customMarkers:
+            if contains(data_set[i], key):
                     customMarkerExists = True
                     marker, name, color = customMarkers[key][0], customMarkers[key][1], customMarkers[key][2]
                     name = name.replace("@",",")
@@ -182,6 +180,18 @@ def drawAbs(ans, lst, savefig=False, name=''):
                     break
             if not customMarkerExists:
                 plt.plot(T[i],A[i],label=data_set[i],marker=".")
+    
+    
+def drawAbs(ans, lst, savefig=False, name=''):
+    global legend, baseline
+    plt.figure(figsize=(5,4))
+    plt.xlabel("T [°C]")
+    plt.ylabel("absorbance")
+    w = ExcelWriter(export_excel)
+    w.addWorksheet('abs(T)')
+    for i in lst:
+        if (ans != 2):
+            plotCustom(T[i], A[i], i)
            #w.writeTable([T[i].tolist(), A[i].tolist()], [data_set[i], ""])
         else:
             plt.plot(Ts, interpolated[i](Ts), "-", label=data_set[i])
@@ -201,14 +211,14 @@ for i in range(len(data_set)):
     if export_images: drawAbs(1, [i], True, data_set[i])
 
 while True:
-    print("0: Absorbance vs Temperature"
+    print("----------------\nPick one:\n0: Absorbance vs Temperature"
           "\n\t\t + baselines (1)"
           "\n\t\t + interpolated (2)"
           "\n((3: Derivative of absorbance vs Temperature))"
           "\n4: Fraction folded vs Temperature"
           "\n((5: lnKa(1/T)))"
           "\n((6: theor. graph))"
-          "\n\n** custom baseline operations **"
+          "\n\n** custom baselines **"
           "\n7: manual baseline determination"
           "\nS: save current baseline configuration to disk"
           "\nL: load baseline configuration"
@@ -237,7 +247,7 @@ while True:
         continue
 
     ans = int(ans)
-    print("--------")
+    print("----------------")
     for i in range(len(data_set)):
         print(str(i) + ": "+ data_set[i])
     inp = input()
@@ -260,16 +270,16 @@ while True:
         for i in range(t[1]-t[0]):
             lst.append(t[0]+i)
     else: lst = (inp.split(','))
-    print("--------")
+    print("----------------")
     for i in range(len(lst)):
         lst[i] = int(lst[i])
     if(ans == 0 or ans == 1 or ans == 2):
         drawAbs(ans,  lst)
         room_temp = 25
         if ans == 1:
-            print("Absorbance values at room temperature:")
-        for i in lst:
-            print(data_set[i], "\t", baseline[i][0]*room_temp+baseline[i][1], "\t", baseline[i][2]*room_temp+baseline[i][3])
+            print("Baseline absorbance values at 25°C:")
+            for i in lst:
+                print(data_set[i], "\t", baseline[i][0]*room_temp+baseline[i][1], "\t", baseline[i][2]*room_temp+baseline[i][3])
     elif ans == 3:
         plt.figure()
         plt.xlabel("T [°C]")
@@ -283,7 +293,7 @@ while True:
         plt.figure()
         plt.xlabel("T [°C]")
         plt.ylabel("fraction folded (Ф)")
-        w = ExcelWriter()
+        w = ExcelWriter(export_excel)
         w.addWorksheet('fracFold(T)')
         Tm_table = [[], []]
         axisXBounds = [1000, 0]
@@ -314,7 +324,7 @@ while True:
             plt.plot(1/(T[i][FROM[i]:TO[i]]+273.15),tk*(1/(T[i][FROM[i]:TO[i]]+273.15))+tn,"--",color=(0.8,0.8,0.8))
             print("ΔH ("+data_set[i]+") = "+str(round(tk*-0.008314))+" kJ/mol")
             print("ΔS ("+data_set[i]+") = "+str(round(tn*8.314))+" J/(molK)")
-            print("Tm (corrected to 30uM) (" + data_set[i] + ") =", round(getTmCorrection((tk*-0.008314), (tn*8.314), dna_conc[i]), 30))
+            #print("Tm (corrected to 30uM) (" + data_set[i] + ") =", round(getTmCorrection((tk*-0.008314), (tn*8.314), dna_conc[i]), 30))
         if legend: plt.legend()
         plt.show()
     elif ans == 6:

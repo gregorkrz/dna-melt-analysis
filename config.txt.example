@@ -1,0 +1,30 @@
+# Comma-separated list of files
+
+filename=example_data.csv
+# from -> to (°C)
+temperature_range=10,90
+
+# legenda v grafih
+legend=on
+
+# toliko prvih in toliko zadnjih tock bo program vzel za baseline: (-1, ce zelimo, da se vzame  n (maks. 15) začetnih točk, ki imajo R-value manjso od 0,8)
+baseline_number_of_points=12
+
+fontsize=14
+
+#optional:
+#disable_export=1
+
+# Definitions of custom colors (optional):
+# color=COLOR1,R,G,B
+# example: color=color1,1,0,0.5
+
+color=c1,0.78,0.4,0.4
+
+# Definitions of custom markers (optional):
+# customMarker=original_name,marker,name,color_name
+
+# Primer konfiguracije.
+# Pomembno: včasih želimo, da je v prikazanem besedilu vejica (npr. "BCL2MID-C4,6,20"). V tem primeru namesto vejice vstavimo znak "@", ki bo zamenjan z vejico pri prikazu.
+
+customMarker=first,-,Real_sample_name_1,c1

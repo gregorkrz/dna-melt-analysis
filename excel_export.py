@@ -5,10 +5,11 @@ import xlsxwriter
 from globals import *
 
 class ExcelWriter:
-  def __init__(self):
+  def __init__(self, save=True):
     self.filename = randomFileName('out/', 'xlsx')
     self.workbook = xlsxwriter.Workbook(self.filename)
     self.column = 0
+    self.save=save
   def addWorksheet(self, ws):
       self.worksheet = self.workbook.add_worksheet(ws)
   def writeCol(self, col):
@@ -21,8 +22,9 @@ class ExcelWriter:
 
 
   def close(self):
-      self.workbook.close()
-      print("Plot saved to file", self.filename)
+      if self.save:
+        self.workbook.close()
+        print("Plot saved to file", self.filename)
 
 
 def randomFileName(start="", ending="txt"):
