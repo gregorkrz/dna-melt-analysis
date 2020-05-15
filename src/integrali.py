@@ -1,3 +1,4 @@
+## WORK IN PROGRESS
 '''
 Program za risanje grafov odvisnosti integralov od temperature (vhodna datoteka gre not prek standardnega vhoda)
 

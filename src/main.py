@@ -9,7 +9,7 @@ from calculations import *
 import matplotlib.markers as markers
 from pickle_warehouse import Warehouse
 import os 
-
+import sys
 
 if not os.path.exists("out"):
         os.makedirs("out")
@@ -34,7 +34,12 @@ export_excel = True
 customMarkers = {}
 customColors = {}
 
-with open('config.txt', encoding="utf-8-sig") as f:
+config_filename = 'config.txt'
+
+if len(sys.argv) > 1:
+    config_filename = sys.argv[1]
+
+with open(config_filename, encoding="utf-8-sig") as f:
     for line in f.readlines():
         if len(line.rstrip()) > 0 and line.rstrip()[0]!='#':
             key = line.rstrip().split('=')[0]
@@ -178,8 +183,8 @@ def plotCustom(x, y, i):
                     name = name.replace("@",",")
                     plt.plot(T[i], A[i], marker=marker, linestyle="", label=name, color=color)
                     break
-            if not customMarkerExists:
-                plt.plot(T[i],A[i],label=data_set[i],marker=".")
+    if not customMarkerExists:
+        plt.plot(T[i],A[i],label=data_set[i],marker=".")
     
     
 def drawAbs(ans, lst, savefig=False, name=''):
@@ -211,20 +216,19 @@ for i in range(len(data_set)):
     if export_images: drawAbs(1, [i], True, data_set[i])
 
 while True:
-    print("----------------\nPick one:\n0: Absorbance vs Temperature"
+    print("----------------\nPick one: (*=experimental feature)\n0: Absorbance vs Temperature"
           "\n\t\t + baselines (1)"
           "\n\t\t + interpolated (2)"
-          "\n((3: Derivative of absorbance vs Temperature))"
+          "\n((*3: Derivative of absorbance vs Temperature))"
           "\n4: Fraction folded vs Temperature"
-          "\n((5: lnKa(1/T)))"
-          "\n((6: theor. graph))"
           "\n\n** custom baselines **"
           "\n7: manual baseline determination"
           "\nS: save current baseline configuration to disk"
           "\nL: load baseline configuration"
           "\nD: delete baseline configuration from disk"
+          "\n\nQ: quit"
           )
-    ans = (input())
+    ans = (input("Enter option: "))
     if ans.upper() == 'Q': break
     elif ans.upper() == 'S':
         save_to = input('Save to: ')

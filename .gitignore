@@ -5,4 +5,6 @@ out
 .idea
 __pycache__
 saved-bl
-/config.txt
+data/
+!data/example_data.csv
+config.txt
