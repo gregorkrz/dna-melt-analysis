@@ -1,30 +1,35 @@
-# Comma-separated list of files
+## EXAMPLE CONFIG FILE ##
+# Comments can be prefixed with a '#'
 
-filename=example_data.csv
-# from -> to (°C)
+
+# Comma-separated list of files. If multiple files are specified, experiment names will be prefixed with the filename.
+filename=data/example_data.csv
+
+# Restrict temperature range
 temperature_range=10,90
 
-# legenda v grafih
 legend=on
 
-# toliko prvih in toliko zadnjih tock bo program vzel za baseline: (-1, ce zelimo, da se vzame  n (maks. 15) začetnih točk, ki imajo R-value manjso od 0,8)
+# Optionally, automatic Excel export can be disabled by setting disable_export=1.
+# If enabled, files will be saved to "out" directory.
+disable_export=0
+
+# baseline_number_of_points specifies the amount of points that will be used for 
+# Setting this property to -1 will attempt to automatically determine best number of points
 baseline_number_of_points=12
 
 fontsize=14
 
-#optional:
-#disable_export=1
-
 # Definitions of custom colors (optional):
-# color=COLOR1,R,G,B
+# color=COLOR_NAME,R,G,B
 # example: color=color1,1,0,0.5
 
-color=c1,0.78,0.4,0.4
+color=my_color,0.2,0.4,1
+color=my_color_2,1,0,0
 
 # Definitions of custom markers (optional):
+# see list of markers at https://matplotlib.org/stable/api/markers_api.html
 # customMarker=original_name,marker,name,color_name
-
-# Primer konfiguracije.
-# Pomembno: včasih želimo, da je v prikazanem besedilu vejica (npr. "BCL2MID-C4,6,20"). V tem primeru namesto vejice vstavimo znak "@", ki bo zamenjan z vejico pri prikazu.
-
-customMarker=first,-,Real_sample_name_1,c1
+# See two examples below:
+# customMarker=Sample1,^,New name of sample 1,my_color_2
+# customMarker=Sample2,^,New name of sample 2,my_color

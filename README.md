@@ -33,3 +33,7 @@ See example data.
 The following command will run the example configuration:
 `python3 src/main.py config.txt.example`
 
+When prompted (e. g. when a plotting operation was selected) to select experiments, a list of experiments prefixed with their IDs will appear. The following select queries are supported:
+* comma separated list of experiment IDs to plot
+* an ID range to plot, e. g. `0-5`
+* searching by experiment name: query `f=text1,text2` will select all experiments that contain string `text1` AND string `text2`
